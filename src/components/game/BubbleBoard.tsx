@@ -28,7 +28,10 @@ function useCellSize(cols: number, rows: number): number {
 }
 
 function computeCell(cols: number, rows: number): number {
-  const maxDim = Math.min(560, window.innerWidth * 0.9, window.innerHeight * 0.62);
+  // Slightly larger ceiling so the board takes advantage of wide viewports
+  // without feeling cramped on small ones. The 90vw/62vh guards keep the
+  // board inside the safe area on any device.
+  const maxDim = Math.min(680, window.innerWidth * 0.9, window.innerHeight * 0.62);
   const raw = Math.floor(maxDim / Math.max(cols, rows));
   return Math.max(30, Math.min(68, raw));
 }

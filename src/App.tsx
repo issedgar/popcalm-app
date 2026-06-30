@@ -11,6 +11,7 @@ import { ProgressBar } from './components/game/ProgressBar';
 import { Celebration } from './components/game/Celebration';
 import { PaletteFlash } from './components/game/PaletteFlash';
 import { OnboardingHint } from './components/game/OnboardingHint';
+import { AmbientBubbles } from './components/game/AmbientBubbles';
 import { t } from './config/i18n';
 import type { Language } from './types/game';
 
@@ -125,6 +126,7 @@ export default function App() {
 
   return (
     <div className="app-root" style={atmosphereStyle}>
+      <AmbientBubbles palette={currentPalette} />
       <Header
         lang={lang}
         muted={muted}

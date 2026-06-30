@@ -516,6 +516,65 @@ body {
 }
 
 /* ══════════════════════════════════════════════
+   AMBIENT BUBBLES — decorative side bubbles that fill wide-viewport
+   dead space without stealing attention from the board. Hidden on
+   mobile (the board fills the screen there).
+   ══════════════════════════════════════════════ */
+.ambient-bubbles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* Radial mask: bubbles are fully visible at the edges and fade
+     smoothly toward the center, where the board lives. This makes
+     the ambient layer recede instead of competing for attention. */
+  --fade: 0.5; /* padding from edges (smaller = harder fade) */
+  -webkit-mask-image: radial-gradient(
+    ellipse 55% 75% at 50% 50%,
+    transparent 0%,
+    transparent 35%,
+    rgba(0, 0, 0, 0.6) 60%,
+    #000 80%
+  );
+  mask-image: radial-gradient(
+    ellipse 55% 75% at 50% 50%,
+    transparent 0%,
+    transparent 35%,
+    rgba(0, 0, 0, 0.6) 60%,
+    #000 80%
+  );
+}
+
+.ambient-bubble {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.18;
+  /* Slow, calm float — drift slightly up and down */
+  animation: ambient-float linear infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes ambient-float {
+  0%   { transform: translateY(0)      rotate(0deg); }
+  50%  { transform: translateY(-14px)  rotate(2deg); }
+  100% { transform: translateY(0)      rotate(0deg); }
+}
+
+/* Hide on small screens — the board already fills the viewport */
+@media (max-width: 767px) {
+  .ambient-bubbles {
+    display: none;
+  }
+}
+
+/* Reduce opacity further on tablets so they stay subtle */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .ambient-bubbles .ambient-bubble {
+    opacity: 0.10;
+  }
+}
+
+/* ══════════════════════════════════════════════
    ONBOARDING HINT
    First-load tooltip that points to a center bubble and disappears
    on first interaction
@@ -802,7 +861,8 @@ body {
   .celebrate-toast,
   .hero-title,
   .hero-subtitle,
-  .app-logo-img {
+  .app-logo-img,
+  .ambient-bubble {
     transition: none;
     animation: none;
   }
