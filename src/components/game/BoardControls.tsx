@@ -43,7 +43,7 @@ export function BoardControls({
               onClick={() => onShapeChange(shape.id)}
               aria-pressed={shapeId === shape.id}
               className={cn(
-                'px-3 py-1.5 rounded-full text-sm transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2',
+                'cursor-pointer px-3 py-1.5 rounded-full text-sm transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2',
                 shapeId === shape.id
                   ? 'bg-white/20 text-white border border-white/30'
                   : 'text-slate-400 hover:text-white hover:bg-white/10 border border-transparent',
@@ -70,7 +70,7 @@ export function BoardControls({
               aria-pressed={paletteId === palette.id}
               aria-label={palette.label[lang]}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2',
+                'cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2',
                 paletteId === palette.id
                   ? 'bg-white/20 text-white border border-white/30'
                   : 'text-slate-400 hover:text-white hover:bg-white/10 border border-transparent',
@@ -103,7 +103,7 @@ export function BoardControls({
           type="button"
           onClick={onReset}
           aria-label={tr.ariaReset}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-slate-400 hover:text-white hover:bg-white/10 transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+          className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-slate-400 hover:text-white hover:bg-white/10 transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
         >
           <RotateCcw size={14} aria-hidden="true" />
           {tr.reset}

@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --ease-pop: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Press (going DOWN): smooth push, no overshoot */
+  --ease-press: cubic-bezier(0.2, 0.9, 0.25, 1);
+  /* Release (going UP): subtle spring-back */
+  --ease-release: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ── Layout ── */
@@ -44,10 +47,10 @@ body {
   cursor: pointer;
   overflow: hidden;
 
-  /* Release → snappy (100ms) */
+  /* Release → snappy spring back (160ms) */
   transition:
-    transform 100ms var(--ease-pop),
-    box-shadow 100ms var(--ease-pop);
+    transform 160ms var(--ease-release),
+    box-shadow 160ms var(--ease-release);
 
   /*
     Elevation layers:
@@ -95,8 +98,8 @@ body {
     rgba(0, 0, 0, 0.12) 100%
   );
   opacity: 1;
-  /* Press → 130ms deliberate */
-  transition: opacity 130ms var(--ease-pop);
+  /* Press → deliberate (130ms) */
+  transition: opacity 130ms var(--ease-press);
   pointer-events: none;
 }
 
@@ -124,7 +127,7 @@ body {
     rgba(0, 0, 0, 0.14) 100%
   );
   opacity: 0;
-  transition: opacity 130ms var(--ease-pop);
+  transition: opacity 130ms var(--ease-press);
   pointer-events: none;
 }
 
@@ -132,15 +135,11 @@ body {
    BUBBLE  —  DOWN (sunken, concave well)
    ══════════════════════════════════════════════ */
 .bubble-btn--down {
-  /* Press → 130ms deliberate */
+  /* Press → deliberate push (130ms) */
   transition:
-    transform 130ms var(--ease-pop),
-    box-shadow 130ms var(--ease-pop);
+    transform 130ms var(--ease-press),
+    box-shadow 130ms var(--ease-press);
 
-  /*
-    Slightly smaller — silicone compressed inward.
-    Main effect comes from shadows, not scale alone.
-  */
   transform: scale(0.88);
 
   /*
@@ -165,12 +164,131 @@ body {
 /* Crossfade: dome → well */
 .bubble-btn--down::before {
   opacity: 0;
-  transition: opacity 130ms var(--ease-pop);
+  transition: opacity 130ms var(--ease-press);
 }
 
 .bubble-btn--down::after {
   opacity: 1;
-  transition: opacity 130ms var(--ease-pop);
+  transition: opacity 130ms var(--ease-press);
+}
+
+/* ── Ripple — transparent ring expanding from bubble center on press ── */
+@keyframes bubble-ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.35;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.bubble-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: bubble-ripple 300ms var(--ease-press) forwards;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════
+   BUBBLE  —  GUIDE (breathing co-regulation)
+   ══════════════════════════════════════════════ */
+
+/*
+  4-7-8 breathing cycle mapped to 19s total:
+    0%  → 21%  (4s)  inhale: bubble expands to 1.18×, cyan glow intensifies
+    21% → 58%  (7s)  hold:   bubble stays expanded, glow steady
+    58% → 100% (8s)  exhale: bubble returns, glow fades
+
+  guide-pulse runs simultaneously, making the outline beat every 1.4s
+  to draw the user's eye regardless of breathing phase.
+*/
+@keyframes guide-breathe {
+  0% {
+    transform: scale(1.0);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.52),
+      0 4px 8px rgba(0, 0, 0, 0.32),
+      0 0 0 2px rgba(0, 0, 0, 0.22),
+      inset 0 -5px 0 rgba(0, 0, 0, 0.26),
+      inset 0 3px 2px rgba(255, 255, 255, 0.28),
+      0 0 0 3px rgba(0, 210, 220, 0.4),
+      0 0 10px rgba(0, 210, 220, 0.15);
+    animation-timing-function: ease-in-out;
+  }
+  21% {
+    transform: scale(1.18);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.52),
+      0 4px 8px rgba(0, 0, 0, 0.32),
+      0 0 0 2px rgba(0, 0, 0, 0.22),
+      inset 0 -5px 0 rgba(0, 0, 0, 0.26),
+      inset 0 3px 2px rgba(255, 255, 255, 0.28),
+      0 0 0 6px rgba(0, 210, 220, 0.95),
+      0 0 32px rgba(0, 210, 220, 0.7);
+    animation-timing-function: linear;
+  }
+  58% {
+    transform: scale(1.18);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.52),
+      0 4px 8px rgba(0, 0, 0, 0.32),
+      0 0 0 2px rgba(0, 0, 0, 0.22),
+      inset 0 -5px 0 rgba(0, 0, 0, 0.26),
+      inset 0 3px 2px rgba(255, 255, 255, 0.28),
+      0 0 0 5px rgba(0, 210, 220, 0.75),
+      0 0 24px rgba(0, 210, 220, 0.5);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: scale(1.0);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.52),
+      0 4px 8px rgba(0, 0, 0, 0.32),
+      0 0 0 2px rgba(0, 0, 0, 0.22),
+      inset 0 -5px 0 rgba(0, 0, 0, 0.26),
+      inset 0 3px 2px rgba(255, 255, 255, 0.28),
+      0 0 0 3px rgba(0, 210, 220, 0.4),
+      0 0 10px rgba(0, 210, 220, 0.15);
+  }
+}
+
+/* Looping outline pulse — runs independently of the breathing cycle */
+@keyframes guide-pulse {
+  0%, 100% {
+    outline-color: rgba(0, 210, 220, 0.5);
+    outline-offset: 2px;
+  }
+  50% {
+    outline-color: rgba(0, 210, 220, 1.0);
+    outline-offset: 6px;
+  }
+}
+
+.bubble-btn--guide {
+  animation:
+    guide-breathe 19s forwards,
+    guide-pulse 1.4s ease-in-out infinite;
+  z-index: 10;
+  outline: 2px solid rgba(0, 210, 220, 0.5);
+  outline-offset: 2px;
+}
+
+/* Stop guide animation if the bubble gets pressed */
+.bubble-btn--guide.bubble-btn--down {
+  animation: none;
+  outline: none;
+  box-shadow:
+    inset 0 10px 28px rgba(0, 0, 0, 0.75),
+    inset 0 -8px 22px rgba(0, 0, 0, 0.62),
+    inset 8px 0 18px rgba(0, 0, 0, 0.48),
+    inset -8px 0 18px rgba(0, 0, 0, 0.48),
+    inset 0 0 32px rgba(0, 0, 0, 0.40),
+    0 0 0 3px rgba(0, 0, 0, 0.36),
+    0 2px 6px rgba(0, 0, 0, 0.22);
 }
 
 /* ── Reduced motion ── */
@@ -178,8 +296,21 @@ body {
   .bubble-btn,
   .bubble-btn::before,
   .bubble-btn::after,
+  .bubble-ripple,
   .app-root,
   .board-surface {
     transition: none;
+    animation: none;
+  }
+
+  /* Static cyan ring as reduced-motion guide indicator */
+  .bubble-btn--guide {
+    animation: none;
+    outline: 3px solid rgba(0, 210, 220, 0.8);
+    outline-offset: 3px;
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.52),
+      0 4px 8px rgba(0, 0, 0, 0.32),
+      0 0 0 3px rgba(0, 210, 220, 0.65) !important;
   }
 }

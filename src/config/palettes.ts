@@ -2,6 +2,16 @@ import type { ColorPalette } from '../types/game';
 
 export const PALETTES: ColorPalette[] = [
   {
+    id: 'popit',
+    label: { es: 'Pop-It', en: 'Pop-It' },
+    // GDD §3 pastel row colors: lavender, powder blue, sage green, lemon, peach, pink
+    colors: ['#E6E6FA', '#B0E0E6', '#98FB98', '#FFFACD', '#FFDAB9', '#FFB6C1'],
+    background: '#18141f',
+    surface: 'rgba(255,255,255,0.09)',
+    accent: '#E6E6FA',
+    border: 'rgba(255,255,255,0.16)',
+  },
+  {
     id: 'aurora',
     label: { es: 'Aurora', en: 'Aurora' },
     colors: ['#22d3ee', '#86efac', '#fde047', '#f9a8d4', '#c4b5fd'],
@@ -48,4 +58,4 @@ export const PALETTES: ColorPalette[] = [
   },
 ];
 
-export const DEFAULT_PALETTE_ID = 'aurora';
+export const DEFAULT_PALETTE_ID = 'popit';

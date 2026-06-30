@@ -1,6 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useBubbleGame } from './hooks/useBubbleGame';
 import { usePopSound } from './hooks/usePopSound';
+import { useHaptic } from './hooks/useHaptic';
+import { useBreathing } from './hooks/useBreathing';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { BubbleBoard } from './components/game/BubbleBoard';
@@ -21,45 +23,91 @@ export default function App() {
     pressBubble,
     releaseBubble,
     reset,
+    waveReset,
     currentShape,
     currentPalette,
     pressedCount,
     totalCount,
   } = useBubbleGame();
 
-  const { muted, toggleMute, playPress, playRelease } = usePopSound();
+  const { muted, toggleMute, playPress, playRelease, advanceTexture } = usePopSound();
+  const { press: hapticPress, release: hapticRelease } = useHaptic();
+
+  // Tracks the last time the user interacted with any bubble
+  const lastInteractionRef = useRef<number>(Date.now());
+
+  const { guideId, cancelGuide } = useBreathing({
+    positions: currentShape.positions,
+    bubbleStates,
+    lastInteractionRef,
+  });
 
   const tr = t(lang);
   const toggleLang = () => setLang(lang === 'es' ? 'en' : 'es');
 
-  // Toggle: play press or release depending on current state
+  // Resolve bubble row from id for pentatonic pitch mapping
+  const getRow = useCallback(
+    (id: string) => currentShape.positions.find((p) => p.id === id)?.row ?? 0,
+    [currentShape],
+  );
+
   const handleToggle = useCallback(
     (id: string) => {
+      lastInteractionRef.current = Date.now();
+      if (id === guideId) cancelGuide();
       const isCurrentlyDown = bubbleStates[id] === 'down';
       toggleBubble(id);
-      if (isCurrentlyDown) playRelease();
-      else playPress();
+      const row = getRow(id);
+      if (isCurrentlyDown) {
+        hapticRelease();
+        playRelease(row);
+      } else {
+        hapticPress();
+        playPress(row);
+      }
     },
-    [bubbleStates, toggleBubble, playPress, playRelease],
+    [bubbleStates, toggleBubble, playPress, playRelease, getRow, hapticPress, hapticRelease, guideId, cancelGuide],
   );
 
-  // Drag press: always goes down
   const handlePress = useCallback(
     (id: string) => {
+      lastInteractionRef.current = Date.now();
       pressBubble(id);
-      playPress();
+      hapticPress();
+      playPress(getRow(id));
     },
-    [pressBubble, playPress],
+    [pressBubble, playPress, getRow, hapticPress],
   );
 
-  // Drag release: always goes up
   const handleRelease = useCallback(
     (id: string) => {
+      lastInteractionRef.current = Date.now();
       releaseBubble(id);
-      playRelease();
+      hapticRelease();
+      playRelease(getRow(id));
     },
-    [releaseBubble, playRelease],
+    [releaseBubble, playRelease, getRow, hapticRelease],
   );
+
+  // Cancel guide if it gets pressed via drag (drag bypasses handleToggle)
+  useEffect(() => {
+    if (guideId && bubbleStates[guideId] === 'down') {
+      cancelGuide();
+    }
+  }, [guideId, bubbleStates, cancelGuide]);
+
+  // Board complete → advance audio texture + soft wave reinflation
+  const boardCompleteRef = useRef(false);
+  useEffect(() => {
+    if (totalCount > 0 && pressedCount === totalCount && !boardCompleteRef.current) {
+      boardCompleteRef.current = true;
+      advanceTexture();
+      waveReset();
+    }
+    if (pressedCount < totalCount) {
+      boardCompleteRef.current = false;
+    }
+  }, [pressedCount, totalCount, advanceTexture, waveReset]);
 
   return (
     <div
@@ -117,6 +165,7 @@ export default function App() {
               palette={currentPalette}
               bubbleStates={bubbleStates}
               lang={lang as Language}
+              guideId={guideId}
               onToggle={handleToggle}
               onPress={handlePress}
               onRelease={handleRelease}

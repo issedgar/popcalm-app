@@ -8,6 +8,7 @@ interface BubbleBoardProps {
   palette: ColorPalette;
   bubbleStates: Record<string, BubbleState>;
   lang: Language;
+  guideId?: string | null;
   onToggle: (id: string) => void;
   onPress: (id: string) => void;
   onRelease: (id: string) => void;
@@ -37,6 +38,7 @@ export function BubbleBoard({
   palette,
   bubbleStates,
   lang,
+  guideId,
   onToggle,
   onPress,
   onRelease,
@@ -124,7 +126,7 @@ export function BubbleBoard({
         onPointerCancel={endDrag}
       >
         {shape.positions.map((pos, i) => {
-          const color = palette.colors[i % palette.colors.length];
+          const color = palette.colors[pos.row % palette.colors.length];
           const state = bubbleStates[pos.id] ?? 'up';
           return (
             <Bubble
@@ -132,6 +134,7 @@ export function BubbleBoard({
               id={pos.id}
               color={color}
               isDown={state === 'down'}
+              isGuide={pos.id === guideId}
               label={translations.ariaBubble(pos.id, state)}
               style={{
                 position: 'absolute',
