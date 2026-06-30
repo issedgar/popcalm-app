@@ -2,6 +2,11 @@ import { useCallback, useRef, useState } from 'react';
 
 let sharedCtx: AudioContext | null = null;
 
+type PendingSound = {
+  type: 'press' | 'release';
+  row: number;
+};
+
 // C major pentatonic across two octaves: C4 D4 E4 G4 A4 C5 D5 E5 G5 A5
 const PENTATONIC = [261.6, 293.7, 329.6, 392.0, 440.0, 523.3, 587.3, 659.3, 784.0, 880.0];
 
@@ -15,6 +20,11 @@ async function getReadyCtx(): Promise<AudioContext> {
   if (!sharedCtx) sharedCtx = new AudioContext();
   if (sharedCtx.state !== 'running') await sharedCtx.resume();
   return sharedCtx;
+}
+
+function canResumeAudioNow(): boolean {
+  const activation = navigator.userActivation;
+  return !activation || activation.isActive;
 }
 
 /* ── Texture 0: Silicone pop ── */
@@ -308,6 +318,8 @@ export function usePopSound() {
 
   const mutedRef   = useRef(muted);
   const textureRef = useRef(textureIndex);
+  const pendingSoundsRef = useRef<PendingSound[]>([]);
+  const isFlushListenerRegisteredRef = useRef(false);
 
   const toggleMute = useCallback(() => {
     const next = !mutedRef.current;
@@ -323,25 +335,73 @@ export function usePopSound() {
     localStorage.setItem(STORAGE_TEXTURE, JSON.stringify(next));
   }, []);
 
+  const flushPendingSounds = useCallback(async () => {
+    isFlushListenerRegisteredRef.current = false;
+    const pendingSounds = pendingSoundsRef.current;
+    pendingSoundsRef.current = [];
+    if (pendingSounds.length === 0 || mutedRef.current) return;
+
+    try {
+      const ctx = await getReadyCtx();
+      pendingSounds.forEach((sound) => {
+        const freq = rowFreq(sound.row);
+        if (sound.type === 'press') {
+          TEXTURES[textureRef.current].press(ctx, freq);
+        } else {
+          TEXTURES[textureRef.current].release(ctx, freq);
+        }
+      });
+    } catch {
+      // AudioContext unavailable or still blocked by the browser
+    }
+  }, []);
+
+  const queueSoundUntilActivation = useCallback(
+    (sound: PendingSound) => {
+      pendingSoundsRef.current.push(sound);
+      if (isFlushListenerRegisteredRef.current || typeof window === 'undefined') return;
+
+      isFlushListenerRegisteredRef.current = true;
+      const flush = () => {
+        window.removeEventListener('pointerup', flush, true);
+        window.removeEventListener('click', flush, true);
+        window.removeEventListener('keydown', flush, true);
+        void flushPendingSounds();
+      };
+      window.addEventListener('pointerup', flush, { capture: true });
+      window.addEventListener('click', flush, { capture: true });
+      window.addEventListener('keydown', flush, { capture: true });
+    },
+    [flushPendingSounds],
+  );
+
   const playPress = useCallback(async (row: number) => {
     if (mutedRef.current) return;
+    if (sharedCtx?.state !== 'running' && !canResumeAudioNow()) {
+      queueSoundUntilActivation({ type: 'press', row });
+      return;
+    }
     try {
       const ctx = await getReadyCtx();
       TEXTURES[textureRef.current].press(ctx, rowFreq(row));
     } catch {
       // AudioContext unavailable or blocked
     }
-  }, []);
+  }, [queueSoundUntilActivation]);
 
   const playRelease = useCallback(async (row: number) => {
     if (mutedRef.current) return;
+    if (sharedCtx?.state !== 'running' && !canResumeAudioNow()) {
+      queueSoundUntilActivation({ type: 'release', row });
+      return;
+    }
     try {
       const ctx = await getReadyCtx();
       TEXTURES[textureRef.current].release(ctx, rowFreq(row));
     } catch {
       // AudioContext unavailable or blocked
     }
-  }, []);
+  }, [queueSoundUntilActivation]);
 
   return { muted, toggleMute, playPress, playRelease, advanceTexture, textureIndex };
 }
