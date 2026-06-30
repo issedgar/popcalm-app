@@ -29,27 +29,24 @@ export function BoardControls({
   const tr = t(lang);
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full max-w-xl mx-auto px-4">
+    <div className="flex flex-col items-center gap-3.5 w-full max-w-xl mx-auto px-4">
       {/* Shape selector */}
       <div className="flex flex-col items-center gap-2 w-full">
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">
+        <span className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-[0.18em]">
           {tr.shape}
         </span>
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex flex-wrap justify-center gap-1.5">
           {SHAPES.map((shape) => (
             <button
               key={shape.id}
               type="button"
               onClick={() => onShapeChange(shape.id)}
               aria-pressed={shapeId === shape.id}
-              className={cn(
-                'cursor-pointer px-3 py-1.5 rounded-full text-sm transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2',
-                shapeId === shape.id
-                  ? 'bg-white/20 text-white border border-white/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/10 border border-transparent',
-              )}
+              className={cn('control-pill', shapeId === shape.id && 'is-active')}
             >
-              <span aria-hidden="true" className="mr-1">{shape.icon}</span>
+              <span aria-hidden="true" className="mr-1.5 text-base leading-none">
+                {shape.icon}
+              </span>
               {shape.label[lang]}
             </button>
           ))}
@@ -58,10 +55,10 @@ export function BoardControls({
 
       {/* Palette selector */}
       <div className="flex flex-col items-center gap-2 w-full">
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">
+        <span className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-[0.18em]">
           {tr.palette}
         </span>
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex flex-wrap justify-center gap-1.5">
           {PALETTES.map((palette) => (
             <button
               key={palette.id}
@@ -70,18 +67,24 @@ export function BoardControls({
               aria-pressed={paletteId === palette.id}
               aria-label={palette.label[lang]}
               className={cn(
-                'cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2',
-                paletteId === palette.id
-                  ? 'bg-white/20 text-white border border-white/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/10 border border-transparent',
+                'control-pill',
+                paletteId === palette.id && 'is-active',
               )}
+              style={
+                paletteId === palette.id
+                  ? ({ '--pill-accent': palette.accent } as React.CSSProperties)
+                  : undefined
+              }
             >
               <span className="flex gap-0.5" aria-hidden="true">
-                {palette.colors.slice(0, 3).map((c) => (
+                {palette.colors.slice(0, 4).map((c) => (
                   <span
                     key={c}
-                    className="w-3 h-3 rounded-full inline-block"
-                    style={{ background: c }}
+                    className="w-2.5 h-2.5 rounded-full inline-block"
+                    style={{
+                      background: c,
+                      boxShadow: `0 0 0 1px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.4)`,
+                    }}
                   />
                 ))}
               </span>
@@ -92,20 +95,20 @@ export function BoardControls({
       </div>
 
       {/* Stats + reset */}
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-slate-400">
-          <span className="text-white font-medium">{pressedCount}</span>
+      <div className="flex items-center gap-2 mt-1">
+        <span className="text-xs text-slate-400 tabular-nums">
+          <span className="text-white font-semibold">{pressedCount}</span>
           {' '}{tr.of}{' '}
-          <span className="text-white font-medium">{totalCount}</span>
+          <span className="text-white font-semibold">{totalCount}</span>
           {' '}{tr.bubbles} {tr.pressed}
         </span>
         <button
           type="button"
           onClick={onReset}
           aria-label={tr.ariaReset}
-          className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-slate-400 hover:text-white hover:bg-white/10 transition-all focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+          className="control-pill control-pill--icon"
         >
-          <RotateCcw size={14} aria-hidden="true" />
+          <RotateCcw size={13} aria-hidden="true" />
           {tr.reset}
         </button>
       </div>

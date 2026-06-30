@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useSyncExternalStore } from 'react';
 import type { BoardShape, BubbleState, ColorPalette, Language } from '../../types/game';
 import { Bubble } from './Bubble';
 import { t } from '../../config/i18n';
@@ -14,17 +14,17 @@ interface BubbleBoardProps {
   onRelease: (id: string) => void;
 }
 
+const subscribeResize = (cb: () => void) => {
+  window.addEventListener('resize', cb);
+  return () => window.removeEventListener('resize', cb);
+};
+
 function useCellSize(cols: number, rows: number): number {
-  const [cellSize, setCellSize] = useState(() => computeCell(cols, rows));
-
-  useEffect(() => {
-    setCellSize(computeCell(cols, rows));
-    const handler = () => setCellSize(computeCell(cols, rows));
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, [cols, rows]);
-
-  return cellSize;
+  return useSyncExternalStore(
+    subscribeResize,
+    () => computeCell(cols, rows),
+    () => computeCell(cols, rows),
+  );
 }
 
 function computeCell(cols: number, rows: number): number {
@@ -111,6 +111,7 @@ export function BubbleBoard({
       style={{ minHeight: boardHeight + 16 }}
     >
       <div
+        key={shape.id}
         ref={boardRef}
         role="group"
         aria-label={lang === 'es' ? 'Tablero de burbujas' : 'Bubble board'}
@@ -142,6 +143,7 @@ export function BubbleBoard({
                 top: pos.row * cellSize + offset,
                 width: bubbleSize,
                 height: bubbleSize,
+                animationDelay: `${Math.min(i * 8, 320)}ms`,
               }}
               onToggle={() => onToggle(pos.id)}
             />

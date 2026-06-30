@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBubbleGame } from './hooks/useBubbleGame';
 import { usePopSound } from './hooks/usePopSound';
 import { useHaptic } from './hooks/useHaptic';
@@ -7,6 +7,10 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { BubbleBoard } from './components/game/BubbleBoard';
 import { BoardControls } from './components/game/BoardControls';
+import { ProgressBar } from './components/game/ProgressBar';
+import { Celebration } from './components/game/Celebration';
+import { PaletteFlash } from './components/game/PaletteFlash';
+import { OnboardingHint } from './components/game/OnboardingHint';
 import { t } from './config/i18n';
 import type { Language } from './types/game';
 
@@ -44,6 +48,9 @@ export default function App() {
 
   const tr = t(lang);
   const toggleLang = () => setLang(lang === 'es' ? 'en' : 'es');
+
+  // Celebration trigger — increments on every board completion
+  const [celebrateTrigger, setCelebrateTrigger] = useState(0);
 
   // Resolve bubble row from id for pentatonic pitch mapping
   const getRow = useCallback(
@@ -96,24 +103,28 @@ export default function App() {
     }
   }, [guideId, bubbleStates, cancelGuide]);
 
-  // Board complete → advance audio texture + soft wave reinflation
+  // Board complete → advance audio texture + soft wave reinflation + celebrate
   const boardCompleteRef = useRef(false);
   useEffect(() => {
     if (totalCount > 0 && pressedCount === totalCount && !boardCompleteRef.current) {
       boardCompleteRef.current = true;
       advanceTexture();
       waveReset();
+      setCelebrateTrigger((c) => c + 1);
     }
     if (pressedCount < totalCount) {
       boardCompleteRef.current = false;
     }
   }, [pressedCount, totalCount, advanceTexture, waveReset]);
 
+  const atmosphereStyle = {
+    background: currentPalette.background,
+    '--bg-glow': currentPalette.colors[0],
+    '--bg-glow-2': currentPalette.colors[currentPalette.colors.length - 1],
+  } as React.CSSProperties;
+
   return (
-    <div
-      className="app-root"
-      style={{ background: currentPalette.background }}
-    >
+    <div className="app-root" style={atmosphereStyle}>
       <Header
         lang={lang}
         muted={muted}
@@ -124,11 +135,22 @@ export default function App() {
 
       <main className="flex-1 flex flex-col">
         {/* Hero */}
-        <section className="text-center px-4 pt-8 pb-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-white mb-2">
-            {tr.tagline}
-          </h1>
-          <p className="text-sm text-slate-400">{tr.description}</p>
+        <section className="text-center px-4 pt-8 pb-4">
+          <h1 className="hero-title">{tr.tagline}</h1>
+          <p className="hero-subtitle">{tr.description}</p>
+        </section>
+
+        {/* Progress bar */}
+        <section
+          aria-label={lang === 'es' ? 'Progreso' : 'Progress'}
+          className="pb-4 flex justify-center"
+        >
+          <ProgressBar
+            pressed={pressedCount}
+            total={totalCount}
+            palette={currentPalette}
+            label={`${pressedCount} ${tr.of} ${totalCount} ${tr.bubbles} ${tr.pressed}`}
+          />
         </section>
 
         {/* Controls */}
@@ -169,6 +191,13 @@ export default function App() {
               onToggle={handleToggle}
               onPress={handlePress}
               onRelease={handleRelease}
+            />
+            <PaletteFlash palette={currentPalette} />
+            <OnboardingHint palette={currentPalette} lang={lang as Language} />
+            <Celebration
+              trigger={celebrateTrigger}
+              palette={currentPalette}
+              lang={lang as Language}
             />
           </div>
         </section>

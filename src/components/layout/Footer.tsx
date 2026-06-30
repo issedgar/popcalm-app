@@ -9,8 +9,10 @@ export function Footer({ lang }: FooterProps) {
   const tr = t(lang);
 
   return (
-    <footer className="py-4 text-center border-t border-white/8">
-      <p className="text-xs text-slate-500">{tr.footerText}</p>
+    <footer className="py-3 text-center">
+      <p className="text-[0.7rem] text-slate-500/70 font-medium tracking-wider">
+        {tr.footerText}
+      </p>
     </footer>
   );
 }
