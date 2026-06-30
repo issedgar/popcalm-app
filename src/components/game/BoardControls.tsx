@@ -29,13 +29,13 @@ export function BoardControls({
   const tr = t(lang);
 
   return (
-    <div className="flex flex-col items-center gap-3.5 w-full max-w-xl mx-auto px-4">
+    <div className="flex flex-col items-center gap-2.5 sm:gap-3 w-full max-w-xl mx-auto px-4">
       {/* Shape selector */}
-      <div className="flex flex-col items-center gap-2 w-full">
+      <div className="flex flex-col items-center gap-1.5 w-full">
         <span className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-[0.18em]">
           {tr.shape}
         </span>
-        <div className="flex flex-wrap justify-center gap-1.5">
+        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
           {SHAPES.map((shape) => (
             <button
               key={shape.id}
@@ -54,11 +54,11 @@ export function BoardControls({
       </div>
 
       {/* Palette selector */}
-      <div className="flex flex-col items-center gap-2 w-full">
+      <div className="flex flex-col items-center gap-1.5 w-full">
         <span className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-[0.18em]">
           {tr.palette}
         </span>
-        <div className="flex flex-wrap justify-center gap-1.5">
+        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
           {PALETTES.map((palette) => (
             <button
               key={palette.id}
@@ -67,7 +67,7 @@ export function BoardControls({
               aria-pressed={paletteId === palette.id}
               aria-label={palette.label[lang]}
               className={cn(
-                'control-pill',
+                'control-pill control-pill--palette',
                 paletteId === palette.id && 'is-active',
               )}
               style={
@@ -76,7 +76,7 @@ export function BoardControls({
                   : undefined
               }
             >
-              <span className="flex gap-0.5" aria-hidden="true">
+              <span className="palette-swatches" aria-hidden="true">
                 {palette.colors.slice(0, 4).map((c) => (
                   <span
                     key={c}

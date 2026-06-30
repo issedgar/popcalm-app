@@ -137,7 +137,7 @@ export default function App() {
 
       <main className="flex-1 flex flex-col">
         {/* Hero */}
-        <section className="text-center px-4 pt-8 pb-4">
+        <section className="text-center px-4 pt-5 pb-2 sm:pt-7 sm:pb-3">
           <h1 className="hero-title">{tr.tagline}</h1>
           <p className="hero-subtitle">{tr.description}</p>
         </section>
@@ -145,7 +145,7 @@ export default function App() {
         {/* Progress bar */}
         <section
           aria-label={lang === 'es' ? 'Progreso' : 'Progress'}
-          className="pb-4 flex justify-center"
+          className="px-4 pb-3 flex justify-center"
         >
           <ProgressBar
             pressed={pressedCount}
@@ -158,7 +158,7 @@ export default function App() {
         {/* Controls */}
         <section
           aria-label={lang === 'es' ? 'Controles' : 'Controls'}
-          className="pb-6"
+          className="pb-4 sm:pb-5"
         >
           <BoardControls
             shapeId={shapeId}
@@ -175,7 +175,7 @@ export default function App() {
         {/* Board */}
         <section
           aria-label={lang === 'es' ? 'Tablero' : 'Board'}
-          className="flex-1 flex items-center justify-center px-4 pb-8"
+          className="flex-1 flex items-start justify-center px-3 sm:px-4 pb-6"
         >
           <div
             className="board-surface"
