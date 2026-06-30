@@ -23,6 +23,11 @@ export const Bubble = memo(function Bubble({ id, color, isDown, isGuide, label, 
     wasDownRef.current = isDown;
   }, [isDown]);
 
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (event.detail > 0) return;
+    onToggle();
+  };
+
   return (
     <button
       type="button"
@@ -31,7 +36,7 @@ export const Bubble = memo(function Bubble({ id, color, isDown, isGuide, label, 
       aria-pressed={isDown}
       style={{ ...style, '--bubble-color': color } as React.CSSProperties}
       className={cn('bubble-btn', isDown && 'bubble-btn--down', isGuide && 'bubble-btn--guide')}
-      onClick={onToggle}
+      onClick={handleClick}
     >
       {pressCount > 0 && (
         <span key={pressCount} className="bubble-ripple" aria-hidden="true" />
